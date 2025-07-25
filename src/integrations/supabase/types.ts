@@ -14,13 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      invite_links: {
+        Row: {
+          created_at: string
+          id: string
+          invite_code: string
+          user_id: string
+          uses: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_code: string
+          user_id: string
+          uses?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          user_id?: string
+          uses?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tier_requirements: {
+        Row: {
+          content_description: string
+          price_usd: number
+          required_invites: number
+          tier: number
+        }
+        Insert: {
+          content_description: string
+          price_usd: number
+          required_invites: number
+          tier: number
+        }
+        Update: {
+          content_description?: string
+          price_usd?: number
+          required_invites?: number
+          tier?: number
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          current_tier: number | null
+          id: string
+          invited_by: string | null
+          ip_address: unknown | null
+          password_hash: string
+          total_invites: number | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          current_tier?: number | null
+          id?: string
+          invited_by?: string | null
+          ip_address?: unknown | null
+          password_hash: string
+          total_invites?: number | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          current_tier?: number | null
+          id?: string
+          invited_by?: string | null
+          ip_address?: unknown | null
+          password_hash?: string
+          total_invites?: number | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_user_invite_link: {
+        Args: { user_id: string }
+        Returns: string
+      }
+      generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
