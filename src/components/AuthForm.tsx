@@ -16,17 +16,20 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
   const [password, setPassword] = useState("");
   const [mathAnswer, setMathAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [mathQuestion, setMathQuestion] = useState({ num1: 0, num2: 0, answer: 0 });
   const { toast } = useToast();
 
-  // Generate simple math question
-  const num1 = Math.floor(Math.random() * 10) + 1;
-  const num2 = Math.floor(Math.random() * 10) + 1;
-  const correctAnswer = num1 + num2;
+  // Generate simple math question only once
+  useState(() => {
+    const num1 = Math.floor(Math.random() * 10) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    setMathQuestion({ num1, num2, answer: num1 + num2 });
+  });
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (parseInt(mathAnswer) !== correctAnswer) {
+    if (parseInt(mathAnswer) !== mathQuestion.answer) {
       toast({
         title: "Error",
         description: "Incorrect math answer. Please try again.",
@@ -189,7 +192,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="math">Security Check: What is {num1} + {num2}?</Label>
+              <Label htmlFor="math">Security Check: What is {mathQuestion.num1} + {mathQuestion.num2}?</Label>
               <Input
                 id="math"
                 type="number"
