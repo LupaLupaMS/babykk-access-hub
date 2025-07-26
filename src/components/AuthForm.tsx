@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,11 +20,11 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
   const { toast } = useToast();
 
   // Generate simple math question only once
-  useState(() => {
+  useEffect(() => {
     const num1 = Math.floor(Math.random() * 10) + 1;
     const num2 = Math.floor(Math.random() * 10) + 1;
     setMathQuestion({ num1, num2, answer: num1 + num2 });
-  });
+  }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
