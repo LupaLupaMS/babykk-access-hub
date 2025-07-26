@@ -17,6 +17,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
   const [password, setPassword] = useState("");
   const [mathAnswer, setMathAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(false);
   const [mathQuestion, setMathQuestion] = useState({ num1: 0, num2: 0, answer: 0 });
   const { toast } = useToast();
 
@@ -35,6 +36,72 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
       console.error("Error generating math question:", error);
     }
   }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Starting login process...");
+
+    if (username.length < 3) {
+      toast({
+        title: "Error",
+        description: "Username must be at least 3 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Hash password to match stored hash
+      const passwordHash = btoa(password);
+
+      // Check user credentials
+      console.log("Checking user credentials...");
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password_hash', passwordHash)
+        .single();
+
+      if (error || !user) {
+        console.log("Login failed:", error);
+        toast({
+          title: "Login Error",
+          description: "Invalid username or password.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("User logged in successfully:", user);
+      toast({
+        title: "Success!",
+        description: "Logged in successfully!",
+      });
+      onAuthSuccess(user);
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log in. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    setIsLoading(false);
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,10 +253,12 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
             BabyKK
           </CardTitle>
-          <p className="text-muted-foreground">Create your account to access premium content</p>
+          <p className="text-muted-foreground">
+            {isLoginMode ? "Sign in to your account" : "Create your account to access premium content"}
+          </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleRegister} className="space-y-4">
+          <form onSubmit={isLoginMode ? handleLogin : handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
@@ -216,20 +285,22 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="math">Security Check: What is {mathQuestion.num1} + {mathQuestion.num2}?</Label>
-              <Input
-                id="math"
-                type="number"
-                value={mathAnswer}
-                onChange={(e) => setMathAnswer(e.target.value)}
-                placeholder="Enter answer"
-                required
-                className="bg-secondary/50"
-              />
-            </div>
+            {!isLoginMode && (
+              <div className="space-y-2">
+                <Label htmlFor="math">Security Check: What is {mathQuestion.num1} + {mathQuestion.num2}?</Label>
+                <Input
+                  id="math"
+                  type="number"
+                  value={mathAnswer}
+                  onChange={(e) => setMathAnswer(e.target.value)}
+                  placeholder="Enter answer"
+                  required
+                  className="bg-secondary/50"
+                />
+              </div>
+            )}
 
-            {inviteCode && (
+            {inviteCode && !isLoginMode && (
               <div className="text-sm text-muted-foreground text-center">
                 Using invite code: <span className="text-primary font-mono">{inviteCode}</span>
               </div>
@@ -240,8 +311,24 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
               className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
               disabled={isLoading}
             >
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {isLoading 
+                ? (isLoginMode ? "Signing In..." : "Creating Account...") 
+                : (isLoginMode ? "Sign In" : "Create Account")
+              }
             </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginMode(!isLoginMode);
+                  setMathAnswer("");
+                }}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {isLoginMode ? "Don't have an account? Create one" : "Already have an account? Sign in"}
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>
