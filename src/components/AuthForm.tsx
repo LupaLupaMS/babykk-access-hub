@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,15 +20,25 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
   const [mathQuestion, setMathQuestion] = useState({ num1: 0, num2: 0, answer: 0 });
   const { toast } = useToast();
 
+  console.log("AuthForm rendering...");
+
   // Generate simple math question only once
   useEffect(() => {
-    const num1 = Math.floor(Math.random() * 10) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    setMathQuestion({ num1, num2, answer: num1 + num2 });
+    console.log("Generating math question...");
+    try {
+      const num1 = Math.floor(Math.random() * 10) + 1;
+      const num2 = Math.floor(Math.random() * 10) + 1;
+      const answer = num1 + num2;
+      console.log("Math question generated:", { num1, num2, answer });
+      setMathQuestion({ num1, num2, answer });
+    } catch (error) {
+      console.error("Error generating math question:", error);
+    }
   }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Starting registration process...");
     
     if (parseInt(mathAnswer) !== mathQuestion.answer) {
       toast({
@@ -59,12 +70,15 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
     setIsLoading(true);
 
     try {
+      console.log("Fetching IP address...");
       // Get user's IP address
       const ipResponse = await fetch('https://api.ipify.org?format=json');
       const ipData = await ipResponse.json();
       const userIP = ipData.ip;
+      console.log("User IP:", userIP);
 
       // Check if IP already has an account
+      console.log("Checking for existing IP...");
       const { data: existingUser } = await supabase
         .from('users')
         .select('id')
@@ -72,6 +86,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
         .single();
 
       if (existingUser) {
+        console.log("IP already has account");
         toast({
           title: "Registration Error",
           description: "An account already exists from this IP address.",
@@ -82,6 +97,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
       }
 
       // Check if username exists
+      console.log("Checking username availability...");
       const { data: usernameCheck } = await supabase
         .from('users')
         .select('id')
@@ -89,6 +105,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
         .single();
 
       if (usernameCheck) {
+        console.log("Username already exists");
         toast({
           title: "Registration Error",
           description: "Username already exists. Please choose another.",
@@ -101,6 +118,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
       // Find inviter if invite code provided
       let inviterId = null;
       if (inviteCode) {
+        console.log("Processing invite code:", inviteCode);
         const { data: inviteLink } = await supabase
           .from('invite_links')
           .select('user_id')
@@ -109,6 +127,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
 
         if (inviteLink) {
           inviterId = inviteLink.user_id;
+          console.log("Found inviter:", inviterId);
         }
       }
 
@@ -116,6 +135,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
       const passwordHash = btoa(password); // Simple base64 for demo
 
       // Create user
+      console.log("Creating user...");
       const { data: newUser, error } = await supabase
         .from('users')
         .insert({
@@ -128,12 +148,14 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
         .single();
 
       if (error) {
+        console.error("User creation error:", error);
         toast({
           title: "Registration Error",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        console.log("User created successfully:", newUser);
         // Create invite link for new user
         await supabase.rpc('create_user_invite_link', { user_id: newUser.id });
         
@@ -144,6 +166,7 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
         onAuthSuccess(newUser);
       }
     } catch (error) {
+      console.error("Registration error:", error);
       toast({
         title: "Error",
         description: "Failed to create account. Please try again.",
@@ -153,6 +176,8 @@ export const AuthForm = ({ onAuthSuccess, inviteCode }: AuthFormProps) => {
 
     setIsLoading(false);
   };
+
+  console.log("AuthForm rendering form with math question:", mathQuestion);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 p-4">

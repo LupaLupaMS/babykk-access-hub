@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { AuthForm } from "@/components/AuthForm";
 import { Sidebar } from "@/components/Sidebar";
@@ -12,28 +13,50 @@ const Index = () => {
   const [tierRequirements, setTierRequirements] = useState([]);
   const [currentView, setCurrentView] = useState("dashboard");
   const [inviteCode, setInviteCode] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Check for invite code in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const invite = urlParams.get('invite');
-    if (invite) {
-      setInviteCode(invite);
-    }
+  console.log("Index component rendering...");
 
-    // Fetch tier requirements
-    fetchTierRequirements();
+  useEffect(() => {
+    console.log("Index useEffect running...");
+    
+    const initializeApp = async () => {
+      try {
+        // Check for invite code in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const invite = urlParams.get('invite');
+        if (invite) {
+          console.log("Invite code found:", invite);
+          setInviteCode(invite);
+        }
+
+        // Fetch tier requirements
+        await fetchTierRequirements();
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing app:", error);
+        setIsLoading(false);
+      }
+    };
+
+    initializeApp();
   }, []);
 
   const fetchTierRequirements = async () => {
     try {
+      console.log("Fetching tier requirements...");
       const { data, error } = await supabase
         .from('tier_requirements')
         .select('*')
         .order('tier');
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+      
+      console.log("Tier requirements fetched:", data);
       setTierRequirements(data || []);
     } catch (error) {
       console.error('Error fetching tier requirements:', error);
@@ -46,14 +69,18 @@ const Index = () => {
   };
 
   const handleAuthSuccess = (userData: any) => {
+    console.log("Auth success:", userData);
     setUser(userData);
   };
 
   const handleUserUpdate = (updatedUser: any) => {
+    console.log("User updated:", updatedUser);
     setUser(updatedUser);
   };
 
   const renderContent = () => {
+    console.log("Rendering content for view:", currentView);
+    
     switch (currentView) {
       case "dashboard":
         return (
@@ -87,10 +114,23 @@ const Index = () => {
     }
   };
 
+  if (isLoading) {
+    console.log("App is loading...");
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/95">
+        <div className="text-center">
+          <div className="animate-pulse text-xl font-semibold">Loading BabyKK...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
+    console.log("No user, showing auth form");
     return <AuthForm onAuthSuccess={handleAuthSuccess} inviteCode={inviteCode} />;
   }
 
+  console.log("Rendering main app with user:", user);
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/95">
       <div className="flex">
