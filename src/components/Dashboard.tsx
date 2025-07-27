@@ -27,17 +27,39 @@ export const Dashboard = ({ user, tierRequirements, onUserUpdate }: DashboardPro
 
   const fetchInviteLink = async () => {
     try {
-      const { data } = await supabase
+      console.log('Fetching invite link for user:', user.id);
+      
+      // First try to get existing invite link
+      const { data, error } = await supabase
         .from('invite_links')
         .select('invite_code')
         .eq('user_id', user.id)
         .single();
 
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching invite link:', error);
+        return;
+      }
+
       if (data) {
-        setInviteLink(`https://www.babykk.shop/?invite=${data.invite_code}`);
+        console.log('Found existing invite link:', data.invite_code);
+        setInviteLink(`${window.location.origin}/?invite=${data.invite_code}`);
+      } else {
+        // If no invite link exists, create one
+        console.log('No invite link found, creating one...');
+        const { data: inviteCode, error: createError } = await supabase.rpc('create_user_invite_link', { 
+          user_id: user.id 
+        });
+        
+        if (createError) {
+          console.error('Error creating invite link:', createError);
+        } else {
+          console.log('Created invite code:', inviteCode);
+          setInviteLink(`${window.location.origin}/?invite=${inviteCode}`);
+        }
       }
     } catch (error) {
-      console.error('Error fetching invite link:', error);
+      console.error('Error in fetchInviteLink:', error);
     }
   };
 
