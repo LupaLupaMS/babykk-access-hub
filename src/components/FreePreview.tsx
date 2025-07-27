@@ -25,23 +25,29 @@ export const FreePreview = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((index) => (
+            {["IMG_3122.MOV", "IMG_3123.MOV", "IMG_3124.MOV", "IMG_3125.MOV", "IMG_3126.MOV", "IMG_3127.MOV"].map((videoName, index) => (
               <Card key={index} className="border-border/30 hover:border-border/60 transition-colors">
                 <CardContent className="p-4">
-                  <div className="aspect-video bg-secondary/50 rounded-lg flex items-center justify-center mb-3">
-                    <Play className="w-8 h-8 text-muted-foreground" />
+                  <div className="aspect-video bg-secondary/50 rounded-lg overflow-hidden mb-3">
+                    <video 
+                      controls 
+                      className="w-full h-full object-cover"
+                      src={`https://jpooiunzmnwywnqnfisy.supabase.co/storage/v1/object/public/videos/${videoName}`}
+                    >
+                      Seu navegador não suporta vídeos.
+                    </video>
                   </div>
-                  <h3 className="font-medium mb-2">Preview Video {index}</h3>
+                  <h3 className="font-medium mb-2">Preview Video {index + 1}</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Sample content preview - upgrade for full access
+                    Conteúdo premium - faça upgrade para acesso completo
                   </p>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="w-full"
-                    disabled
+                    onClick={() => window.open('https://t.me/babykk001', '_blank')}
                   >
-                    Coming Soon
+                    Ver Mais no Telegram
                   </Button>
                 </CardContent>
               </Card>
